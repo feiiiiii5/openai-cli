@@ -1,4 +1,4 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+// File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 package cmd
 
@@ -30,6 +30,11 @@ var adminOrganizationProjectsServiceAccountsAPIKeysCreate = cli.Command{
 			Usage:     "The ID of the service account.",
 			Required:  true,
 			PathParam: "service_account_id",
+		},
+		&requestflag.Flag[*int64]{
+			Name:     "expires-in-seconds",
+			Usage:    "Number of seconds until the API key expires.",
+			BodyPath: "expires_in_seconds",
 		},
 		&requestflag.Flag[string]{
 			Name:     "name",
