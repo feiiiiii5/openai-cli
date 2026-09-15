@@ -156,12 +156,14 @@ func TestEmbedFiles(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "non-existent file with backslash path @ prefix (error)",
+			name: "non-existent file with backslash path @ prefix",
 			input: map[string]any{
 				"missing": "@subfolder\\missingfile",
 			},
-			want:    nil,
-			wantErr: true,
+			want: map[string]any{
+				"missing": "@subfolder\\missingfile",
+			},
+			wantErr: os.PathSeparator == '\\',
 		},
 		{
 			name: "non-file-like thing with @ prefix",
@@ -249,6 +251,54 @@ func TestEmbedFiles(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestEmbedFilesBackslashLiteralOnUnix(t *testing.T) {
+	t.Parallel()
+	if os.PathSeparator == '\\' {
+		t.Skip("backslash is a path separator on Windows")
+	}
+
+	const value = `@subfolder\missingfile`
+	_, err := os.Stat(strings.TrimPrefix(value, "@"))
+	require.ErrorIs(t, err, os.ErrNotExist)
+
+	for _, tc := range []struct {
+		name  string
+		style FileEmbedStyle
+	}{
+		{"text", EmbedText},
+		{"stream", EmbedIOReader},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := embedFiles(map[string]any{"value": value}, tc.style, nil)
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{"value": value}, got)
+		})
+	}
+}
+
+func TestLikelyFilePathMacOSAndWindows(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name      string
+		separator byte
+		filename  string
+		want      bool
+	}{
+		{"macOS backslash literal", '/', `subfolder\missingfile`, false},
+		{"Windows backslash path", '\\', `subfolder\missingfile`, true},
+		{"macOS slash path", '/', "subfolder/missingfile", true},
+		{"Windows slash path", '\\', "subfolder/missingfile", true},
+		{"macOS filename with extension", '/', "missingfile.txt", true},
+		{"Windows filename with extension", '\\', "missingfile.txt", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, tc.want, isLikelyFilePath(tc.filename, tc.separator))
 		})
 	}
 }

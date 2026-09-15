@@ -85,6 +85,11 @@ func isStdinPath(s string) bool {
 	return false
 }
 
+func isLikelyFilePath(filename string, pathSeparator byte) bool {
+	return strings.ContainsAny(filename, "./") ||
+		(pathSeparator == '\\' && strings.Contains(filename, "\\"))
+}
+
 func embedFiles(obj any, embedStyle FileEmbedStyle, stdin *onceStdinReader) (any, error) {
 	if obj == nil {
 		return obj, nil
@@ -234,7 +239,7 @@ func embedFilesValue(v reflect.Value, embedStyle FileEmbedStyle, stdin *onceStdi
 					// string literal and not a file reference. However, if the
 					// string looks like "@file.txt" or "@/tmp/file", then it's
 					// probably supposed to be a file.
-					probablyFile := strings.Contains(filename, ".") || strings.Contains(filename, "/") || strings.Contains(filename, "\\")
+					probablyFile := isLikelyFilePath(filename, os.PathSeparator)
 					if probablyFile {
 						// Give a useful error message if the user tried to upload a
 						// file, but the file couldn't be read (e.g. mistyped
@@ -262,7 +267,7 @@ func embedFilesValue(v reflect.Value, embedStyle FileEmbedStyle, stdin *onceStdi
 				} else if withoutPrefix, ok := strings.CutPrefix(filename, "file://"); ok {
 					filename = withoutPrefix
 				} else {
-					expectsFile = strings.Contains(filename, ".") || strings.Contains(filename, "/") || strings.Contains(filename, "\\")
+					expectsFile = isLikelyFilePath(filename, os.PathSeparator)
 				}
 
 				if isStdinPath(filename) {
