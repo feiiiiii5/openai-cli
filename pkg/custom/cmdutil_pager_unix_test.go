@@ -22,6 +22,9 @@ func TestPagerCommand(t *testing.T) {
 	spacedPath := filepath.Join(spacedDir, "pager")
 	require.NoError(t, os.WriteFile(spacedPath, []byte("#!/bin/sh\n"), 0700))
 
+	completePath := filepath.Join(tempDir, "pager with spaces")
+	require.NoError(t, os.WriteFile(completePath, []byte("#!/bin/sh\n"), 0700))
+
 	missingPath := filepath.Join(tempDir, "missing")
 
 	for _, tc := range []struct {
@@ -36,6 +39,7 @@ func TestPagerCommand(t *testing.T) {
 		{name: "arguments are split off", pager: pagerPath + " -R --no-init", want: []string{pagerPath, "-R", "--no-init"}},
 		{name: "trimmed value with arguments", pager: " " + pagerPath + " -R", want: []string{pagerPath, "-R"}},
 		{name: "path with spaces stays one program", pager: spacedPath, want: []string{spacedPath}},
+		{name: "complete executable path wins over its prefix", pager: completePath, want: []string{completePath}},
 		{name: "unresolvable first word keeps the whole value", pager: missingPath + " -R", want: []string{missingPath + " -R"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

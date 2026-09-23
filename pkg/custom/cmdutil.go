@@ -141,6 +141,11 @@ func pagerCommand() []string {
 	if pager == "" {
 		return []string{"less"}
 	}
+	// Prefer a complete executable path before treating spaces as argument
+	// separators; a path containing spaces may itself be executable.
+	if _, err := exec.LookPath(pager); err == nil {
+		return []string{pager}
+	}
 	if command := strings.Fields(pager); len(command) > 1 {
 		if _, err := exec.LookPath(command[0]); err == nil {
 			return command
