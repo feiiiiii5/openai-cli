@@ -64,6 +64,12 @@ func (e *encoder) encodeValue(key string, val reflect.Value, writer *multipart.W
 
 	t := val.Type()
 
+	// A typed nil pointer can implement io.Reader; check nil-ness before
+	// converting it to the reader interface and invoking methods on it.
+	if (t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface) && val.IsNil() {
+		return writer.WriteField(key, "")
+	}
+
 	if t.Implements(reflect.TypeOf((*io.Reader)(nil)).Elem()) {
 		return e.encodeReader(key, val, writer)
 	}
