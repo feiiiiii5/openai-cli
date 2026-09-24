@@ -34,7 +34,8 @@ var OutputFormats = []string{"auto", "explore", "json", "jsonl", "pretty", "raw"
 // ValidateBaseURL checks that a base URL is correctly prefixed with a protocol scheme and produces a better
 // error message than the person would see otherwise if it doesn't.
 func ValidateBaseURL(value, source string) error {
-	if value != "" && !strings.HasPrefix(value, "http://") && !strings.HasPrefix(value, "https://") {
+	normalized := strings.ToLower(value)
+	if value != "" && !strings.HasPrefix(normalized, "http://") && !strings.HasPrefix(normalized, "https://") {
 		return fmt.Errorf("%s %q is missing a scheme (expected http:// or https://)", source, value)
 	}
 	return nil

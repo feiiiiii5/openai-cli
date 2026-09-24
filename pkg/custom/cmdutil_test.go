@@ -273,6 +273,12 @@ func TestValidateBaseURL(t *testing.T) {
 		require.NoError(t, ValidateBaseURL("https://api.example.com", "--base-url"))
 	})
 
+	t.Run("ValidHTTPSUppercaseScheme", func(t *testing.T) {
+		t.Parallel()
+
+		require.NoError(t, ValidateBaseURL("HTTPS://api.example.com", "--base-url"))
+	})
+
 	t.Run("ValidHTTP", func(t *testing.T) {
 		t.Parallel()
 
